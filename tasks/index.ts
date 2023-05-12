@@ -1,5 +1,14 @@
 import { task } from "hardhat/config";
 
+task("accounts", "Display accounts").setAction(async function (
+  args,
+  { ethers }
+) {
+  console.log(
+    (await ethers.getSigners()).map(({ address }) => address).join("\n")
+  );
+});
+
 task("deploy-weth", "Deploy WETH contract").setAction(async function (
   args,
   { ethers }
