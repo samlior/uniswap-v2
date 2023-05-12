@@ -1,3 +1,4 @@
+import type { ethers as HardhatEthers } from "hardhat";
 import { task } from "hardhat/config";
 
 task("accounts", "Display accounts").setAction(async function (
@@ -8,6 +9,77 @@ task("accounts", "Display accounts").setAction(async function (
     (await ethers.getSigners()).map(({ address }) => address).join("\n")
   );
 });
+
+function parseFuncArg(value: string, ethers: typeof HardhatEthers) {
+  if (value.startsWith("[") && value.endsWith("]")) {
+    return value.slice(1, value.length - 2).split(",");
+  } else if (value === "true") {
+    return true;
+  } else if (value === "false") {
+    return false;
+  } else if (value === "max") {
+    return ethers.constants.MaxUint256;
+  } else {
+    return value;
+  }
+}
+
+task("call", "Call contract view function")
+  .addParam("contract", "Contract name")
+  .addParam("address", "Contract address")
+  .addParam("func", "Function name")
+  .addOptionalParam("arg0", "Function argument")
+  .addOptionalParam("arg1", "Function argument")
+  .addOptionalParam("arg2", "Function argument")
+  .addOptionalParam("arg3", "Function argument")
+  .addOptionalParam("arg4", "Function argument")
+  .addOptionalParam("arg5", "Function argument")
+  .addOptionalParam("arg6", "Function argument")
+  .addOptionalParam("tag", "Block tag")
+  .setAction(async function (args, { ethers }) {
+    const contract: any = await ethers.getContractAt(
+      args.contract,
+      args.address
+    );
+    const funcArgs: any[] = [];
+    for (let i = 0; i < 7; i++) {
+      const value = args[`arg${i}`];
+      if (value === undefined) {
+        break;
+      }
+      funcArgs.push(parseFuncArg(value, ethers));
+    }
+    console.log(await contract[args.func](...funcArgs, { blockTag: args.tag }));
+  });
+
+task("sendTx", "Send a transaction to call a contract")
+  .addParam("contract", "Contract name")
+  .addParam("address", "Contract address")
+  .addParam("func", "Function name")
+  .addOptionalParam("arg0", "Function argument")
+  .addOptionalParam("arg1", "Function argument")
+  .addOptionalParam("arg2", "Function argument")
+  .addOptionalParam("arg3", "Function argument")
+  .addOptionalParam("arg4", "Function argument")
+  .addOptionalParam("arg5", "Function argument")
+  .addOptionalParam("arg6", "Function argument")
+  .setAction(async function (args, { ethers }) {
+    const contract: any = await ethers.getContractAt(
+      args.contract,
+      args.address
+    );
+    const funcArgs: any[] = [];
+    for (let i = 0; i < 7; i++) {
+      const value = args[`arg${i}`];
+      if (value === undefined) {
+        break;
+      }
+      funcArgs.push(parseFuncArg(value, ethers));
+    }
+    const tx = await contract[args.func](...funcArgs);
+    const receipt = await tx.wait();
+    console.log(receipt.events);
+  });
 
 task("deploy-weth", "Deploy WETH contract").setAction(async function (
   args,
