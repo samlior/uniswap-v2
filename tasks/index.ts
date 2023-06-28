@@ -114,6 +114,6 @@ task("deploy-uniswap-v2", "Deploy UniswapV2 contracts")
       const UniswapV2Router02 = await factory.deploy(factoryAddress, args.weth);
       console.log("tx sent:", UniswapV2Router02.deployTransaction.hash);
       await UniswapV2Router02.deployed();
-      console.log("deploy UniswapV2Factory at:", UniswapV2Router02.address);
+      console.log("deploy UniswapV2Router02 at:", UniswapV2Router02.address);
     }
   });
